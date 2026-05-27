@@ -19,7 +19,18 @@ from werkzeug.utils import secure_filename
 
 
 BASE_DIR = Path(__file__).resolve().parent
-SECURE_STORAGE = BASE_DIR / "secure_storage"
+
+
+def get_storage_root():
+    configured = os.environ.get("SECURE_STORAGE_DIR")
+    if configured:
+        return Path(configured)
+    if os.environ.get("VERCEL"):
+        return Path("/tmp") / "secure_storage"
+    return BASE_DIR / "secure_storage"
+
+
+SECURE_STORAGE = get_storage_root()
 UPLOADS_DIR = SECURE_STORAGE / "uploads"
 BACKUPS_DIR = SECURE_STORAGE / "backups"
 EXPORTS_DIR = SECURE_STORAGE / "exports"
@@ -2658,4 +2669,6 @@ def export_metadata():
 
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5001, debug=False)
+    port = int(os.environ.get("PORT", 5001))
+    host = os.environ.get("HOST", "0.0.0.0")
+    app.run(host=host, port=port, debug=False)
