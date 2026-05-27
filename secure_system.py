@@ -794,18 +794,6 @@ LANDING_TEMPLATE = """
             margin-top: 22px;
         }
 
-        .credential-box {
-            margin-top: 18px;
-            padding: 18px;
-            border-radius: 22px;
-            background: rgba(11, 93, 102, 0.08);
-            border: 1px solid rgba(11, 93, 102, 0.12);
-        }
-
-        .credential-box p {
-            margin: 6px 0;
-        }
-
         @media (max-width: 920px) {
             .hero, .features {
                 grid-template-columns: 1fr;
@@ -865,10 +853,6 @@ LANDING_TEMPLATE = """
                         <strong>{{ events_count }}</strong>
                         Eventos auditados
                     </div>
-                </div>
-                <div class="credential-box">
-                    <p><strong>Credenciales demo admin:</strong> admin / Admin1234</p>
-                    <p><strong>Credenciales demo usuario:</strong> analista / Analista123</p>
                 </div>
             </article>
             <aside class="hero-card panel-list">
