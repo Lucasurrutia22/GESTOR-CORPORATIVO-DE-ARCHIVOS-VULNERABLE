@@ -994,6 +994,12 @@ AUTH_TEMPLATE = """
             padding: 42px;
         }
 
+        .panel.two-factor {
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(246, 242, 235, 0.96)),
+                var(--surface);
+        }
+
         .topline {
             display: flex;
             justify-content: space-between;
@@ -1015,6 +1021,21 @@ AUTH_TEMPLATE = """
         .muted {
             color: var(--muted);
             line-height: 1.7;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 18px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(17, 66, 75, 0.08);
+            color: var(--accent-strong);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
         }
 
         .notice {
@@ -1056,6 +1077,96 @@ AUTH_TEMPLATE = """
             border: 1px solid var(--line);
             background: rgba(255, 255, 255, 0.8);
             font-size: 1rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: rgba(15, 118, 110, 0.45);
+            box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12);
+            transform: translateY(-1px);
+        }
+
+        .two-factor-shell {
+            display: grid;
+            gap: 18px;
+            padding: 22px;
+            border-radius: 24px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(242, 238, 231, 0.96));
+            border: 1px solid rgba(17, 66, 75, 0.08);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+        }
+
+        .security-card {
+            display: grid;
+            gap: 10px;
+            padding: 16px 18px;
+            border-radius: 18px;
+            background: rgba(17, 66, 75, 0.06);
+            border: 1px solid rgba(17, 66, 75, 0.1);
+        }
+
+        .security-card strong {
+            font-size: 0.92rem;
+            color: var(--accent-strong);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .security-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .security-metric {
+            padding: 12px 14px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(22, 33, 42, 0.08);
+        }
+
+        .security-metric span {
+            display: block;
+            margin-bottom: 4px;
+            color: var(--muted);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .security-metric strong {
+            font-size: 1rem;
+            color: var(--ink);
+        }
+
+        .code-field {
+            gap: 12px;
+        }
+
+        .code-input {
+            padding: 18px 20px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.94);
+            border: 1px solid rgba(22, 33, 42, 0.16);
+            font-size: 1.75rem;
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: 0.5em;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .field-hint {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+
+        .submit.two-factor-submit {
+            margin-top: 2px;
+            padding: 16px 20px;
+            border-radius: 20px;
+            font-size: 1.06rem;
         }
 
         .submit {
@@ -1087,6 +1198,10 @@ AUTH_TEMPLATE = """
             .layout {
                 grid-template-columns: 1fr;
             }
+
+            .security-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -1103,11 +1218,14 @@ AUTH_TEMPLATE = """
                 <li>Auditoria, busqueda y panel administrativo</li>
             </ul>
         </section>
-        <section class="panel">
+        <section class="panel{% if two_factor_stage %} two-factor{% endif %}">
             <div class="topline">
                 <strong>Secure Document Hub</strong>
                 <a href="{{ url_for('home') }}">Volver al inicio</a>
             </div>
+            {% if two_factor_stage %}
+            <div class="eyebrow">Verificacion reforzada</div>
+            {% endif %}
             <h2>{{ heading }}</h2>
             <p class="muted">{{ description }}</p>
             {% if notice %}
@@ -1120,10 +1238,25 @@ AUTH_TEMPLATE = """
                 </label>
                 {% endif %}
                 {% if two_factor_stage %}
-                <label>Codigo de verificacion
-                    <input name="two_factor_code" type="password" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" placeholder="123123" required>
-                </label>
-                <p class="muted">Usuario en validacion: <strong>{{ pending_username }}</strong>. Para esta demo, el codigo seguro es 123123.</p>
+                <div class="two-factor-shell">
+                    <div class="security-card">
+                        <strong>Control de acceso</strong>
+                        <div class="security-grid">
+                            <div class="security-metric">
+                                <span>Usuario</span>
+                                <strong>{{ pending_username }}</strong>
+                            </div>
+                            <div class="security-metric">
+                                <span>Metodo</span>
+                                <strong>Codigo de 6 digitos</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <label class="code-field">Codigo de verificacion
+                        <input class="code-input" name="two_factor_code" type="password" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" minlength="6" maxlength="6" placeholder="******" required>
+                    </label>
+                    <p class="field-hint">Ingresa tu codigo de verificacion para continuar con el acceso al panel.</p>
+                </div>
                 {% else %}
                 <label>Usuario
                     <input name="username" type="text" placeholder="usuario" required>
@@ -1135,7 +1268,7 @@ AUTH_TEMPLATE = """
                 {% if mode == 'register' %}
                 <p class="muted">La clave debe incluir al menos 8 caracteres, una mayuscula, una minuscula y un numero.</p>
                 {% endif %}
-                <button class="submit" type="submit">{{ button_text }}</button>
+                <button class="submit{% if two_factor_stage %} two-factor-submit{% endif %}" type="submit">{{ button_text }}</button>
             </form>
             <p class="subtle">
                 {% if mode == 'login' %}
