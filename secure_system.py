@@ -941,6 +941,13 @@ AUTH_TEMPLATE = """
             padding: 24px;
         }
 
+        body.two-factor-body {
+            background:
+                radial-gradient(circle at 20% 25%, rgba(114, 160, 255, 0.12), transparent 30%),
+                radial-gradient(circle at 78% 75%, rgba(15, 118, 110, 0.1), transparent 26%),
+                linear-gradient(180deg, #eff5fb 0%, #eef3f8 100%);
+        }
+
         .layout {
             width: min(1100px, 100%);
             display: grid;
@@ -950,6 +957,16 @@ AUTH_TEMPLATE = """
             box-shadow: var(--shadow);
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .layout.two-factor-layout {
+            width: min(460px, calc(100% - 24px));
+            display: block;
+            background: transparent;
+            border: 0;
+            border-radius: 24px;
+            box-shadow: none;
+            overflow: visible;
         }
 
         .showcase {
@@ -995,9 +1012,11 @@ AUTH_TEMPLATE = """
         }
 
         .panel.two-factor {
-            background:
-                linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(246, 242, 235, 0.96)),
-                var(--surface);
+            padding: 28px 30px 24px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(76, 96, 122, 0.12);
+            box-shadow: 0 20px 50px rgba(59, 82, 120, 0.12);
         }
 
         .topline {
@@ -1013,14 +1032,44 @@ AUTH_TEMPLATE = """
             font-weight: 700;
         }
 
+        .topline.compact {
+            justify-content: flex-end;
+            margin-bottom: 6px;
+        }
+
+        .topline.compact a {
+            display: inline-grid;
+            place-items: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            color: #7c8a98;
+            font-size: 1rem;
+            font-weight: 400;
+        }
+
         h2 {
             font-size: 2rem;
             margin-bottom: 10px;
         }
 
+        .panel.two-factor h2 {
+            margin: 10px 0 8px;
+            font-size: 1.8rem;
+            text-align: center;
+        }
+
         .muted {
             color: var(--muted);
             line-height: 1.7;
+        }
+
+        .panel.two-factor .muted {
+            margin: 0 auto;
+            max-width: 320px;
+            font-size: 0.96rem;
+            line-height: 1.55;
+            text-align: center;
         }
 
         .eyebrow {
@@ -1038,11 +1087,44 @@ AUTH_TEMPLATE = """
             text-transform: uppercase;
         }
 
+        .eyebrow.two-factor {
+            margin: 0 auto;
+            padding: 0;
+            background: transparent;
+            color: #355070;
+            font-size: 0.74rem;
+            letter-spacing: 0.14em;
+        }
+
+        .icon-badge {
+            width: 56px;
+            height: 56px;
+            margin: 4px auto 8px;
+            display: grid;
+            place-items: center;
+            border-radius: 18px;
+            background: linear-gradient(145deg, rgba(43, 119, 255, 0.14), rgba(15, 118, 110, 0.12));
+            color: #1d4ed8;
+        }
+
+        .icon-badge svg {
+            width: 28px;
+            height: 28px;
+        }
+
         .notice {
             margin-top: 18px;
             padding: 14px 16px;
             border-radius: 16px;
             border: 1px solid transparent;
+        }
+
+        .panel.two-factor .notice {
+            margin: 18px auto 0;
+            max-width: 360px;
+            border-radius: 14px;
+            font-size: 0.92rem;
+            text-align: center;
         }
 
         .notice.error {
@@ -1090,63 +1172,18 @@ AUTH_TEMPLATE = """
         .two-factor-shell {
             display: grid;
             gap: 18px;
-            padding: 22px;
-            border-radius: 24px;
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.76), rgba(242, 238, 231, 0.96));
-            border: 1px solid rgba(17, 66, 75, 0.08);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
-        }
-
-        .security-card {
-            display: grid;
-            gap: 10px;
-            padding: 16px 18px;
-            border-radius: 18px;
-            background: rgba(17, 66, 75, 0.06);
-            border: 1px solid rgba(17, 66, 75, 0.1);
-        }
-
-        .security-card strong {
-            font-size: 0.92rem;
-            color: var(--accent-strong);
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
-
-        .security-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 12px;
-        }
-
-        .security-metric {
-            padding: 12px 14px;
-            border-radius: 16px;
-            background: rgba(255, 255, 255, 0.72);
-            border: 1px solid rgba(22, 33, 42, 0.08);
-        }
-
-        .security-metric span {
-            display: block;
-            margin-bottom: 4px;
-            color: var(--muted);
-            font-size: 0.78rem;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-        }
-
-        .security-metric strong {
-            font-size: 1rem;
-            color: var(--ink);
+            margin-top: 4px;
         }
 
         .code-field {
             gap: 12px;
+            text-align: center;
         }
 
         .otp-wrapper {
             position: relative;
             display: grid;
+            justify-items: center;
             gap: 14px;
         }
 
@@ -1160,21 +1197,23 @@ AUTH_TEMPLATE = """
         .otp-slots {
             display: grid;
             grid-template-columns: repeat(6, minmax(0, 1fr));
-            gap: 12px;
+            gap: 10px;
         }
 
         .otp-slot {
-            min-height: 72px;
+            min-width: 34px;
+            min-height: 48px;
             display: grid;
             place-items: center;
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.94);
-            border: 1px solid rgba(22, 33, 42, 0.16);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
-            font-size: 1.9rem;
+            border-radius: 0;
+            background: transparent;
+            border: 0;
+            border-bottom: 2px solid #c8d2de;
+            box-shadow: none;
+            font-size: 1.5rem;
             font-weight: 700;
-            color: var(--accent-strong);
-            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+            color: #2a3c57;
+            transition: border-color 0.2s ease, transform 0.2s ease;
             cursor: text;
             user-select: none;
         }
@@ -1184,22 +1223,46 @@ AUTH_TEMPLATE = """
         }
 
         .otp-slot.active {
-            border-color: rgba(15, 118, 110, 0.5);
-            box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12);
+            border-color: #2b77ff;
             transform: translateY(-1px);
         }
 
         .field-hint {
             margin: 0;
-            font-size: 0.9rem;
-            color: var(--muted);
+            font-size: 0.82rem;
+            color: #738396;
+            text-align: center;
+        }
+
+        .two-factor-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-top: 6px;
+        }
+
+        .two-factor-footer p {
+            margin: 0;
+            font-size: 0.78rem;
+            line-height: 1.45;
+            color: #738396;
+        }
+
+        .two-factor-footer a {
+            color: #2b77ff;
+            text-decoration: none;
+            font-weight: 700;
         }
 
         .submit.two-factor-submit {
-            margin-top: 2px;
-            padding: 16px 20px;
-            border-radius: 20px;
-            font-size: 1.06rem;
+            margin-top: 0;
+            min-width: 92px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            box-shadow: none;
+            background: #1d72f3;
         }
 
         .submit {
@@ -1232,23 +1295,26 @@ AUTH_TEMPLATE = """
                 grid-template-columns: 1fr;
             }
 
-            .security-grid {
-                grid-template-columns: 1fr;
-            }
-
             .otp-slots {
                 gap: 8px;
             }
 
             .otp-slot {
-                min-height: 60px;
-                font-size: 1.55rem;
+                min-width: 28px;
+                min-height: 42px;
+                font-size: 1.35rem;
+            }
+
+            .two-factor-footer {
+                flex-direction: column;
+                align-items: stretch;
             }
         }
     </style>
 </head>
-<body>
-    <div class="layout">
+<body class="{% if two_factor_stage %}two-factor-body{% endif %}">
+    <div class="layout{% if two_factor_stage %} two-factor-layout{% endif %}">
+        {% if not two_factor_stage %}
         <section class="showcase">
             <span class="tag">Secure access</span>
             <h1>{{ hero_title }}</h1>
@@ -1260,13 +1326,24 @@ AUTH_TEMPLATE = """
                 <li>Auditoria, busqueda y panel administrativo</li>
             </ul>
         </section>
+        {% endif %}
         <section class="panel{% if two_factor_stage %} two-factor{% endif %}">
-            <div class="topline">
+            <div class="topline{% if two_factor_stage %} compact{% endif %}">
+                {% if not two_factor_stage %}
                 <strong>Secure Document Hub</strong>
                 <a href="{{ url_for('home') }}">Volver al inicio</a>
+                {% else %}
+                <a href="{{ url_for('home') }}" aria-label="Cerrar verificacion">×</a>
+                {% endif %}
             </div>
             {% if two_factor_stage %}
-            <div class="eyebrow">Verificacion reforzada</div>
+            <div class="icon-badge" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 3L18.5 5.4V10.8C18.5 15 15.78 18.84 12 20C8.22 18.84 5.5 15 5.5 10.8V5.4L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                    <path d="M9.5 11.5L11.3 13.3L15 9.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <div class="eyebrow two-factor">Secure verification</div>
             {% endif %}
             <h2>{{ heading }}</h2>
             <p class="muted">{{ description }}</p>
@@ -1281,33 +1358,24 @@ AUTH_TEMPLATE = """
                 {% endif %}
                 {% if two_factor_stage %}
                 <div class="two-factor-shell">
-                    <div class="security-card">
-                        <strong>Control de acceso</strong>
-                        <div class="security-grid">
-                            <div class="security-metric">
-                                <span>Usuario</span>
-                                <strong>{{ pending_username }}</strong>
-                            </div>
-                            <div class="security-metric">
-                                <span>Canal</span>
-                                <strong>Correo verificado</strong>
-                            </div>
-                        </div>
-                    </div>
                     <label class="code-field">Codigo de verificacion
                         <div class="otp-wrapper" data-otp-wrapper>
                             <input class="otp-hidden" name="two_factor_code" type="password" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" minlength="6" maxlength="6" required data-otp-input>
                             <div class="otp-slots" aria-hidden="true" data-otp-slots>
-                                <div class="otp-slot active" data-otp-slot>*</div>
-                                <div class="otp-slot" data-otp-slot>*</div>
-                                <div class="otp-slot" data-otp-slot>*</div>
-                                <div class="otp-slot" data-otp-slot>*</div>
-                                <div class="otp-slot" data-otp-slot>*</div>
-                                <div class="otp-slot" data-otp-slot>*</div>
+                                <div class="otp-slot active" data-otp-slot></div>
+                                <div class="otp-slot" data-otp-slot></div>
+                                <div class="otp-slot" data-otp-slot></div>
+                                <div class="otp-slot" data-otp-slot></div>
+                                <div class="otp-slot" data-otp-slot></div>
+                                <div class="otp-slot" data-otp-slot></div>
                             </div>
                         </div>
                     </label>
                     <p class="field-hint">Se envio una clave de autenticacion a tu correo admin@pruebavulnerabilidad.cl.</p>
+                    <div class="two-factor-footer">
+                        <p>Puede tardar unos minutos en llegar tu codigo.<br>¿No lo recibiste? <a href="{{ url_for('login') }}">Reenviar codigo</a>.</p>
+                        <button class="submit two-factor-submit" type="submit">Validar</button>
+                    </div>
                 </div>
                 {% else %}
                 <label>Usuario
@@ -1320,8 +1388,11 @@ AUTH_TEMPLATE = """
                 {% if mode == 'register' %}
                 <p class="muted">La clave debe incluir al menos 8 caracteres, una mayuscula, una minuscula y un numero.</p>
                 {% endif %}
-                <button class="submit{% if two_factor_stage %} two-factor-submit{% endif %}" type="submit">{{ button_text }}</button>
+                {% if not two_factor_stage %}
+                <button class="submit" type="submit">{{ button_text }}</button>
+                {% endif %}
             </form>
+            {% if not two_factor_stage %}
             <p class="subtle">
                 {% if mode == 'login' %}
                 Si aun no tienes cuenta, <a href="{{ url_for('register') }}">registrate aqui</a>.
@@ -1329,6 +1400,7 @@ AUTH_TEMPLATE = """
                 Si ya tienes acceso, <a href="{{ url_for('login') }}">ingresa con tu cuenta</a>.
                 {% endif %}
             </p>
+            {% endif %}
         </section>
     </div>
     {% if two_factor_stage %}
@@ -2125,9 +2197,9 @@ def render_auth_page(mode):
     if mode == "login":
         context.update({
             "title": "Segundo factor | Secure Document Hub" if two_factor_stage else "Login | Secure Document Hub",
-            "heading": "Verificar segundo factor" if two_factor_stage else "Iniciar sesion",
-            "description": "Se envio una clave de autenticacion a tu correo admin@pruebavulnerabilidad.cl." if two_factor_stage else "Accede a tu espacio documental con un panel profesional y controles de seguridad activos.",
-            "button_text": "Validar acceso" if two_factor_stage else "Entrar al panel",
+            "heading": "Autentica tu cuenta" if two_factor_stage else "Iniciar sesion",
+            "description": "Se envio una clave de autenticacion a tu correo admin@pruebavulnerabilidad.cl para confirmar tu acceso." if two_factor_stage else "Accede a tu espacio documental con un panel profesional y controles de seguridad activos.",
+            "button_text": "Validar" if two_factor_stage else "Entrar al panel",
             "hero_title": "Segundo factor para un acceso seguro" if two_factor_stage else "Ingreso seguro para equipos y administradores",
             "hero_text": "Se envio una clave de autenticacion a tu correo admin@pruebavulnerabilidad.cl para confirmar el inicio de sesion." if two_factor_stage else "La aplicacion incluye autenticacion robusta, sesion de navegador protegida y operaciones completas desde la interfaz web.",
             "action": url_for("login"),
