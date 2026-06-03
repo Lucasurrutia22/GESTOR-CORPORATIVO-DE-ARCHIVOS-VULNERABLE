@@ -1144,16 +1144,49 @@ AUTH_TEMPLATE = """
             gap: 12px;
         }
 
-        .code-input {
-            padding: 18px 20px;
+        .otp-wrapper {
+            position: relative;
+            display: grid;
+            gap: 14px;
+        }
+
+        .otp-hidden {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .otp-slots {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .otp-slot {
+            min-height: 72px;
+            display: grid;
+            place-items: center;
             border-radius: 20px;
             background: rgba(255, 255, 255, 0.94);
             border: 1px solid rgba(22, 33, 42, 0.16);
-            font-size: 1.75rem;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+            font-size: 1.9rem;
             font-weight: 700;
-            text-align: center;
-            letter-spacing: 0.5em;
-            font-variant-numeric: tabular-nums;
+            color: var(--accent-strong);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+            cursor: text;
+            user-select: none;
+        }
+
+        .otp-slot.filled {
+            color: var(--ink);
+        }
+
+        .otp-slot.active {
+            border-color: rgba(15, 118, 110, 0.5);
+            box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12);
+            transform: translateY(-1px);
         }
 
         .field-hint {
@@ -1202,6 +1235,15 @@ AUTH_TEMPLATE = """
             .security-grid {
                 grid-template-columns: 1fr;
             }
+
+            .otp-slots {
+                gap: 8px;
+            }
+
+            .otp-slot {
+                min-height: 60px;
+                font-size: 1.55rem;
+            }
         }
     </style>
 </head>
@@ -1247,15 +1289,25 @@ AUTH_TEMPLATE = """
                                 <strong>{{ pending_username }}</strong>
                             </div>
                             <div class="security-metric">
-                                <span>Metodo</span>
-                                <strong>Codigo de 6 digitos</strong>
+                                <span>Canal</span>
+                                <strong>Correo verificado</strong>
                             </div>
                         </div>
                     </div>
                     <label class="code-field">Codigo de verificacion
-                        <input class="code-input" name="two_factor_code" type="password" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" minlength="6" maxlength="6" placeholder="******" required>
+                        <div class="otp-wrapper" data-otp-wrapper>
+                            <input class="otp-hidden" name="two_factor_code" type="password" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" minlength="6" maxlength="6" required data-otp-input>
+                            <div class="otp-slots" aria-hidden="true" data-otp-slots>
+                                <div class="otp-slot active" data-otp-slot>*</div>
+                                <div class="otp-slot" data-otp-slot>*</div>
+                                <div class="otp-slot" data-otp-slot>*</div>
+                                <div class="otp-slot" data-otp-slot>*</div>
+                                <div class="otp-slot" data-otp-slot>*</div>
+                                <div class="otp-slot" data-otp-slot>*</div>
+                            </div>
+                        </div>
                     </label>
-                    <p class="field-hint">Ingresa tu codigo de verificacion para continuar con el acceso al panel.</p>
+                    <p class="field-hint">Se envio una clave de autenticacion a tu correo admin@pruebavulnerabilidad.cl.</p>
                 </div>
                 {% else %}
                 <label>Usuario
@@ -1279,6 +1331,40 @@ AUTH_TEMPLATE = """
             </p>
         </section>
     </div>
+    {% if two_factor_stage %}
+    <script>
+        (function () {
+            const wrapper = document.querySelector('[data-otp-wrapper]');
+            if (!wrapper) {
+                return;
+            }
+            const input = wrapper.querySelector('[data-otp-input]');
+            const slots = Array.from(wrapper.querySelectorAll('[data-otp-slot]'));
+
+            const syncSlots = () => {
+                const digits = (input.value || '').replace(/\\D/g, '').slice(0, 6);
+                if (input.value !== digits) {
+                    input.value = digits;
+                }
+
+                slots.forEach((slot, index) => {
+                    const filled = index < digits.length;
+                    slot.textContent = filled ? '*' : '';
+                    slot.classList.toggle('filled', filled);
+                    slot.classList.toggle('active', index === Math.min(digits.length, slots.length - 1));
+                });
+            };
+
+            wrapper.addEventListener('click', function () {
+                input.focus();
+            });
+            input.addEventListener('input', syncSlots);
+            input.addEventListener('focus', syncSlots);
+            input.addEventListener('blur', syncSlots);
+            syncSlots();
+        }());
+    </script>
+    {% endif %}
 </body>
 </html>
 """
@@ -2040,10 +2126,10 @@ def render_auth_page(mode):
         context.update({
             "title": "Segundo factor | Secure Document Hub" if two_factor_stage else "Login | Secure Document Hub",
             "heading": "Verificar segundo factor" if two_factor_stage else "Iniciar sesion",
-            "description": "Ingresa el codigo seguro de 6 digitos para completar el acceso." if two_factor_stage else "Accede a tu espacio documental con un panel profesional y controles de seguridad activos.",
+            "description": "Se envio una clave de autenticacion a tu correo admin@pruebavulnerabilidad.cl." if two_factor_stage else "Accede a tu espacio documental con un panel profesional y controles de seguridad activos.",
             "button_text": "Validar acceso" if two_factor_stage else "Entrar al panel",
             "hero_title": "Segundo factor para un acceso seguro" if two_factor_stage else "Ingreso seguro para equipos y administradores",
-            "hero_text": "Para esta simulacion usa el codigo 123123 y completa el acceso al panel." if two_factor_stage else "La aplicacion incluye autenticacion robusta, sesion de navegador protegida y operaciones completas desde la interfaz web.",
+            "hero_text": "Se envio una clave de autenticacion a tu correo admin@pruebavulnerabilidad.cl para confirmar el inicio de sesion." if two_factor_stage else "La aplicacion incluye autenticacion robusta, sesion de navegador protegida y operaciones completas desde la interfaz web.",
             "action": url_for("login"),
         })
     else:
@@ -2278,7 +2364,7 @@ def login():
         return redirect(url_for("login"))
 
     start_pending_login(user["username"])
-    set_notice("success", "Credenciales correctas. Ingresa el codigo 123123 para completar el acceso.")
+    set_notice("success", "Se envio una clave de autenticacion a tu correo admin@pruebavulnerabilidad.cl.")
     return redirect(url_for("login"))
 
 
