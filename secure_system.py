@@ -327,11 +327,24 @@ def issue_session(username):
     return token, expires_at
 
 
+def start_pending_login(username):
+    browser_session["pending_2fa_user"] = username
+
+
+def get_pending_login_username():
+    return browser_session.get("pending_2fa_user")
+
+
+def clear_pending_login():
+    browser_session.pop("pending_2fa_user", None)
+
+
 def destroy_session(token=None):
     active_token = token or extract_token()
     if active_token:
         sessions.pop(active_token, None)
     browser_session.pop("session_token", None)
+    clear_pending_login()
 
 
 def get_current_username():
@@ -1106,12 +1119,19 @@ AUTH_TEMPLATE = """
                     <input name="email" type="email" placeholder="nombre@empresa.cl" required>
                 </label>
                 {% endif %}
+                {% if two_factor_stage %}
+                <label>Codigo de verificacion
+                    <input name="two_factor_code" type="password" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" placeholder="123123" required>
+                </label>
+                <p class="muted">Usuario en validacion: <strong>{{ pending_username }}</strong>. Para esta demo, el codigo seguro es 123123.</p>
+                {% else %}
                 <label>Usuario
                     <input name="username" type="text" placeholder="usuario" required>
                 </label>
                 <label>Clave
                     <input name="password" type="password" placeholder="********" required>
                 </label>
+                {% endif %}
                 {% if mode == 'register' %}
                 <p class="muted">La clave debe incluir al menos 8 caracteres, una mayuscula, una minuscula y un numero.</p>
                 {% endif %}
@@ -1875,18 +1895,22 @@ DASHBOARD_TEMPLATE = """
 
 def render_auth_page(mode):
     notice = pop_notice()
+    pending_username = get_pending_login_username()
+    two_factor_stage = mode == "login" and bool(pending_username)
     context = {
         "mode": mode,
         "notice": notice,
+        "two_factor_stage": two_factor_stage,
+        "pending_username": pending_username,
     }
     if mode == "login":
         context.update({
-            "title": "Login | Secure Document Hub",
-            "heading": "Iniciar sesion",
-            "description": "Accede a tu espacio documental con un panel profesional y controles de seguridad activos.",
-            "button_text": "Entrar al panel",
-            "hero_title": "Ingreso seguro para equipos y administradores",
-            "hero_text": "La aplicacion incluye autenticacion robusta, sesion de navegador protegida y operaciones completas desde la interfaz web.",
+            "title": "Segundo factor | Secure Document Hub" if two_factor_stage else "Login | Secure Document Hub",
+            "heading": "Verificar segundo factor" if two_factor_stage else "Iniciar sesion",
+            "description": "Ingresa el codigo seguro de 6 digitos para completar el acceso." if two_factor_stage else "Accede a tu espacio documental con un panel profesional y controles de seguridad activos.",
+            "button_text": "Validar acceso" if two_factor_stage else "Entrar al panel",
+            "hero_title": "Segundo factor para un acceso seguro" if two_factor_stage else "Ingreso seguro para equipos y administradores",
+            "hero_text": "Para esta simulacion usa el codigo 123123 y completa el acceso al panel." if two_factor_stage else "La aplicacion incluye autenticacion robusta, sesion de navegador protegida y operaciones completas desde la interfaz web.",
             "action": url_for("login"),
         })
     else:
@@ -1921,16 +1945,23 @@ def complete_registration(username, password, email):
     return user, None, 201
 
 
-def complete_login(username, password):
+def authenticate_credentials(username, password):
     username = (username or "").strip()
     password = password or ""
     user = users.get(username)
     if not user or not check_password_hash(user["password_hash"], password):
         audit(username or "anonymous", "login", status="failed")
-        return None, None, "Credenciales invalidas", 401
+        return None, "Credenciales invalidas", 401
+    return user, None, 200
 
-    token, expires_at = issue_session(username)
-    audit(username, "login")
+
+def complete_login(username, password):
+    user, error_message, status_code = authenticate_credentials(username, password)
+    if error_message:
+        return None, None, error_message, status_code
+
+    token, expires_at = issue_session(user["username"])
+    audit(user["username"], "login")
     return user, {"token": token, "expires_at": expires_at.isoformat()}, None, 200
 
 
@@ -2091,16 +2122,31 @@ def login():
             "user": serialize_user(user),
         })
 
-    user, _, error_message, _ = complete_login(
+    pending_username = get_pending_login_username()
+    if pending_username:
+        two_factor_code = (request.form.get("two_factor_code") or "").strip()
+        if two_factor_code != "123123":
+            set_notice("error", "Codigo de segundo factor invalido.")
+            return redirect(url_for("login"))
+
+        issue_session(pending_username)
+        clear_pending_login()
+        audit(pending_username, "login")
+        set_notice("success", "Acceso correctamente. Segundo factor validado.")
+        return redirect(url_for("dashboard"))
+
+    user, error_message, _ = authenticate_credentials(
         request.form.get("username"),
         request.form.get("password"),
     )
     if error_message:
+        clear_pending_login()
         set_notice("error", error_message)
         return redirect(url_for("login"))
 
-    set_notice("success", "Sesion iniciada correctamente.")
-    return redirect(url_for("dashboard"))
+    start_pending_login(user["username"])
+    set_notice("success", "Credenciales correctas. Ingresa el codigo 123123 para completar el acceso.")
+    return redirect(url_for("login"))
 
 
 @app.route("/logout", methods=["POST"])
